@@ -1,0 +1,30 @@
+﻿Feature Request: Playlist Cover Image
+May 15 2008
+
+OBJECTIVE
+Display a cover image for the related playlist 
+BACKGROUND 
+Currently, jamming has the posibility to save a playlist but not display a cover related to.
+This feature accomplishes the following:
+    • Displays an image related to the playlist.
+    • The application will upload a random image taken from the playlist.
+    • When the user save a playlist from different artists the application will display a random image taken from the artists track album.
+
+TECHNICAL DESIGN
+Get and Display Cover
+A new component, CoverPlaylist should be created. This component, on render, will get current users playlists information.
+We will need to initialize state for CoverPlaylist to contain a key for playlists that defaults object image.
+To get CoverPlaylist, we will create a new method, Spotify.getUserCoverPlaylist(), that hits the https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/images endpoint. As we can see, this endpoint requires the user ID. 
+To retrieve the user ID, we will hit the https://api.spotify.com/v1/me endpoint, as we currently do in Spotify.savePlaylist(). We will refactor this request to a new method called Spotify.getCurrentUserId() (to avoid duplicate code). At the top of Spotify.js, we will instantiate a variable called userId with no value. Then inside Spotify.getCurrentUserId(), we will check to see if userId's value is already set (from a previous call to the function). If it is, we will create and return a promise that will resolve to that value. Otherwise we will make the call to the /me endpoint and return that request's promise.
+Once our .getCurrentUserId() is written, we should use it in both Spotify.savePlaylist() and our new method, Spotify.getUserPlaylists(). 
+In Spotify.getUserCoverPlaylist(), once the user ID has been retrieved, we can make our call to the {user_id}/playlists/{playlist_id}/images endpoint. Upon completion of this request, we will update the current playlist's state to an array of the object images. 
+To call this method at time of render, we should add a .componentWillMount() lifecycle method to CoverPlaylists and call .getUserCoverPlaylists() within it.
+The .render() method of CoverPlaylists should render a list of ImagePlaylist components (another new component), passing down the ID and name of each playlist to be rendered. 
+Finally, App should render CoverPlaylist.
+
+
+
+CAVEATS
+App CoverPlaylist
+Since we are adding information to playlist as a state image object this could lead to conflicts while rendering different playlist, this is why I used  a new component rather than calling the getPlaylistCover method inside Playlist component.
+I would need to add more information, but I have to try to build the feature first in order to understand better this subject.
